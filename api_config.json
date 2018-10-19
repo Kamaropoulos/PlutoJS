@@ -1,0 +1,13 @@
+{
+    "table1": {
+        "id": true,
+        "status": true,
+        "sort": true
+    },
+    "table2": {
+
+    },
+    "table3": {
+
+    }
+}
