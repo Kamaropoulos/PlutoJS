@@ -1,0 +1,31 @@
+{
+  "name": "plutojs",
+  "version": "0.0.1",
+  "description": "A Dwarf CMS built with on top of ExpressJS and Directus",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kamaropoulos/PlutoJS.git"
+  },
+  "author": {
+    "name": "Konstantinos Kamaropoulos",
+    "email": "kamaropoulos@outlook.com",
+    "url": "https://kamaropoulos.tk/"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kamaropoulos/PlutoJS/issues"
+  },
+  "homepage": "https://github.com/Kamaropoulos/PlutoJS#readme",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "chalk": "^2.4.1",
+    "dotenv": "^6.1.0",
+    "express": "^4.16.4",
+    "express-handlebars": "^3.0.0"
+  }
+}
