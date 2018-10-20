@@ -1,6 +1,20 @@
+// SETUP //
 require('dotenv').config();
 const axios = require('axios');
 const chalk = require('chalk');
+
+const optionDefinitions = [
+    { name: 'verbose', alias: 'v', type: Boolean },
+    { name: 'quiet', alias: 'q', type: Boolean },
+    { name: 'src', type: String, multiple: true, defaultOption: true },
+    { name: 'email', type: String, alias: 'm' },
+    { name: 'password', type: String, alias: 'p' },
+    { name: 'env', type: String, alias: 'e' },
+    { name: 'upwd', type: Boolean, alias: 'u' }
+]
+
+const commandLineArgs = require('command-line-args')
+const options = commandLineArgs(optionDefinitions)
 
 var API_HOSTNAME = 'localhost';
 var fs = require('fs');
@@ -10,22 +24,44 @@ if (fs.existsSync('/.dockerenv')) {
 
 const dConfig = require('./api_config.json');
 
-function createTable(tableName, callback) {
+// - Setup //
+
+// Methods //
+
+function createTable(tableName, API_TOKEN, callback) {
+    let axios_config = {
+        headers: { 'Authorization': "Bearer " + API_TOKEN }
+    };
     axios.post('http://' + API_HOSTNAME + ':8080/api/1.1/tables',
-    {
-        name: tableName
-    })
-    .then(response => {
-        console.log("Created table " + tableName);
-        callback(response);
-    })
-    .catch(error => {
-        console.error(chalk.red("Could not create table " + tableName));
-    });
+        {
+            name: tableName
+        }, axios_config)
+        .then(response => {
+            if (!response.data.success) {
+                console.error(chalk.red("Could not create table " + tableName + ': ') + 
+                                response.data.error.message);
+            } else {
+                console.log("Created table " + tableName);
+                if (callback) callback(response);
+            }
+        })
+        .catch(error => {
+            console.error(chalk.red("Could not create table " + tableName));
+            if (options.verbose) console.log(error);
+        });
+}
+
+function createTables(config, API_TOKEN) {
+    for (const tableName in config) {
+        if (config.hasOwnProperty(tableName)) {
+            const table = config[tableName];
+            createTable(tableName, API_TOKEN);
+        }
+    }
 }
 
 function createColumn(tableName, columnName, ) {
-    
+
 }
 
 function getToken(email, password, callback) {
@@ -42,9 +78,14 @@ function getToken(email, password, callback) {
         });
 }
 
-function configDirectus() {
-    console.log(Object.keys(dConfig));
+function configDirectus(API_TOKEN) {
+    console.log("Creating tables...");
+    createTables(dConfig, API_TOKEN);
 }
+
+// - Methods //
+
+// Main //
 
 // Try getting an API Token, first using the default email and password
 // and if that doesn't work, use the email/password pair from the .env file
@@ -85,17 +126,20 @@ getToken(defaultEmail, defaultPassword, function (response) {
 
 
         // Running main configuration
-        configDirectus();
+        configDirectus(API_TOKEN);
 
     } else {
         // Default email/password pair failed, trying the one from .env
         getToken(process.env.DIRECTUS_EMAIL, process.env.DIRECTUS_PASSWORD, function (response) {
             if (response.data.success) {
+                var API_TOKEN = response.data.data.token;
                 console.log(chalk.green("Authentication was successful!"));
-                configDirectus();
+                configDirectus(API_TOKEN);
             } else {
                 console.log(chalk.red('Authentication failed...'));
             }
         });
     }
 });
+
+// - Main //
