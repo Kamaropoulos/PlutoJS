@@ -28,6 +28,13 @@ const dConfig = require('./api_config.json');
 
 // Methods //
 
+// Only executes callback if in verbose mode
+function verbose(callback) {
+    if (options.verbose) {
+        callback();
+    }
+}
+
 function createTable(tableName, API_TOKEN, callback) {
     let axios_config = {
         headers: { 'Authorization': "Bearer " + API_TOKEN }
@@ -37,17 +44,20 @@ function createTable(tableName, API_TOKEN, callback) {
             name: tableName
         }, axios_config)
         .then(response => {
-            if (!response.data.success) {
-                console.error(chalk.red("Could not create table " + tableName + ': ') + 
-                                response.data.error.message);
+            if (response.data.success === false) {
+                console.error(chalk.red("Could not create table " +
+                    tableName + ': ') +
+                    response.data.error.message);
+                // verbose(console.log(response.data));
+                if (typeof callback !== "undefined") callback(false, response, response.data.error);
             } else {
-                console.log("Created table " + tableName);
-                if (callback) callback(response);
+                console.log(chalk.green("Created table " + tableName));
+                if (typeof callback !== "undefined") callback(false, response, null);
             }
         })
         .catch(error => {
             console.error(chalk.red("Could not create table " + tableName));
-            if (options.verbose) console.log(error);
+            if (typeof callback !== "undefined") callback(false, null, error);
         });
 }
 
@@ -55,13 +65,50 @@ function createTables(config, API_TOKEN) {
     for (const tableName in config) {
         if (config.hasOwnProperty(tableName)) {
             const table = config[tableName];
-            createTable(tableName, API_TOKEN);
+            createTable(tableName, API_TOKEN, function (success, response, error) {
+                // Create ID, Sort and Status fields
+                // createColumn(tableName, 'id', 'int', 'primary', API_TOKEN, function () {
+                    createColumn(tableName, 'sort', 'int', 'sort', API_TOKEN, function () {
+                        createColumn(tableName, 'status', 'int', 'status', API_TOKEN, null, 11);
+                    }, 10);
+                // }, 11);
+            });
         }
     }
 }
 
-function createColumn(tableName, columnName, ) {
-
+function createColumn(tableName, columnName, type, ui, API_TOKEN, callback, length, comment) {
+    let axios_config = {
+        headers: { 'Authorization': "Bearer " + API_TOKEN }
+    };
+    let data = {
+        column_name: columnName,
+        data_type: type,
+        ui: ui,
+        default: ""
+    }
+    if (length) data["char_length"] = length;
+    if (comment) data["comment"] = comment;
+    axios.post('http://' + API_HOSTNAME + ':8080/api/1.1/tables/' + tableName + '/columns',
+        data, axios_config)
+        .then(response => {
+            if (response.data.success === false) {
+                console.error(chalk.red("Could not create column " +
+                    columnName + ' on table ' + tableName + ': ') +
+                    response.data.error);
+                // verbose(console.log(response.data));
+                if (callback) callback(false, response, response.data.error);
+            } else {
+                console.log(chalk.green("Created column " + columnName + " on table " + tableName));
+                if (callback) callback(true, response, null);
+            }
+        })
+        .catch(error => {
+            console.error(chalk.red("Could not create column " +
+                columnName + ' on table ' + tableName + ": ") + error.response.data.error.message);
+            // verbose(console.log(error));
+            if (callback) callback(false, null, error);
+        });
 }
 
 function getToken(email, password, callback) {
@@ -71,10 +118,10 @@ function getToken(email, password, callback) {
             password
         })
         .then(response => {
-            callback(response);
+            if (typeof callback !== "undefined") callback(response);
         })
         .catch(error => {
-
+            console.log(chalk.red("Connection failed!"));
         });
 }
 
@@ -124,21 +171,21 @@ getToken(defaultEmail, defaultPassword, function (response) {
                 });
         }
 
-
         // Running main configuration
         configDirectus(API_TOKEN);
 
     } else {
         // Default email/password pair failed, trying the one from .env
-        getToken(process.env.DIRECTUS_EMAIL, process.env.DIRECTUS_PASSWORD, function (response) {
-            if (response.data.success) {
-                var API_TOKEN = response.data.data.token;
-                console.log(chalk.green("Authentication was successful!"));
-                configDirectus(API_TOKEN);
-            } else {
-                console.log(chalk.red('Authentication failed...'));
-            }
-        });
+        getToken(process.env.DIRECTUS_EMAIL, process.env.DIRECTUS_PASSWORD,
+            function (response) {
+                if (response.data.success) {
+                    var API_TOKEN = response.data.data.token;
+                    console.log(chalk.green("Authentication was successful!"));
+                    configDirectus(API_TOKEN);
+                } else {
+                    console.log(chalk.red('Authentication failed...'));
+                }
+            });
     }
 });
 
