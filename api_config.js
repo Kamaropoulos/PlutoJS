@@ -45,18 +45,18 @@ function createTable(tableName, API_TOKEN, callback) {
         }, axios_config)
         .then(response => {
             if (response.data.success === false) {
-                console.error(chalk.red("Could not create table " +
-                    tableName + ': ') +
-                    response.data.error.message);
+                console.error(chalk.red("Could not create table ") +
+                chalk.bgRed(tableName) + chalk.red(': ' +
+                    response.data.error.message));
                 // verbose(console.log(response.data));
                 if (typeof callback !== "undefined") callback(false, response, response.data.error);
             } else {
-                console.log(chalk.green("Created table " + tableName));
+                console.log(chalk.green("Created table ") + chalk.bgGreen(tableName));
                 if (typeof callback !== "undefined") callback(false, response, null);
             }
         })
         .catch(error => {
-            console.error(chalk.red("Could not create table " + tableName));
+            console.error(chalk.red("Could not create table ") + chalk.bgRed(tableName));
             if (typeof callback !== "undefined") callback(false, null, error);
         });
 }
@@ -122,21 +122,21 @@ function createColumn(tableName, API_TOKEN, columnOptions, callback) { // column
         columnOptions, axios_config)
         .then(response => {
             if (response.data.success === false) {
-                console.error(chalk.red("Could not create column " +
-                    columnOptions.column_name + ' on table ' + tableName + ': ') +
-                    response.data.error);
+                console.error(chalk.red("Could not create column ") +
+                    chalk.bgRed(columnOptions.column_name) + chalk.red(' on table ') + chalk.bgRed(tableName) + chalk.red(': ' +
+                    response.data.error));
                 // verbose(console.log(response.data));
                 if (callback) callback(false, response, response.data.error);
             } else {
-                console.log(chalk.green("Created column " + columnOptions.column_name +
-                    " on table " + tableName));
+                console.log(chalk.green("Created column ") + chalk.bgGreen(columnOptions.column_name) +
+                chalk.green(" on table ") + chalk.bgGreen(tableName));
                 if (callback) callback(true, response, null);
             }
         })
         .catch(error => {
-            console.error(chalk.red("Could not create column " +
-                columnOptions.column_name + ' on table ' + tableName + ": ") +
-                error.response.data.error.message);
+            console.error(chalk.red("Could not create column ") +
+            chalk.bgRed(columnOptions.column_name) + chalk.red(' on table ') + chalk.bgRed(tableName) + chalk.red(": " +
+                error.response.data.error.message));
             // console.log(error);
             // verbose(console.log(error));
             if (callback) callback(false, null, error);

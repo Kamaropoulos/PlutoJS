@@ -27,7 +27,7 @@
         "url": {
             "data_type": "text",
             "char_length": 100,
-            "ui": "text_input"       ,
+            "ui": "text_input",
             "comment": ""     
         }
     }
