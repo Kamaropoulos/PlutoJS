@@ -68,44 +68,76 @@ function createTables(config, API_TOKEN) {
             createTable(tableName, API_TOKEN, function (success, response, error) {
                 // Create ID, Sort and Status fields
                 // createColumn(tableName, 'id', 'int', 'primary', API_TOKEN, function () {
-                    createColumn(tableName, 'sort', 'int', 'sort', API_TOKEN, function () {
-                        createColumn(tableName, 'status', 'int', 'status', API_TOKEN, null, 11);
-                    }, 10);
+                let sortOpts = {
+                    column_name: 'sort',
+                    data_type: 'int',
+                    char_length: 10,
+                    ui: 'sort',
+                    hidden_input: true,
+                    sort: 1,
+                    comment: ""
+                }
+
+                let statusOpts = {
+                    column_name: 'status',
+                    data_type: 'int',
+                    char_length: 11,
+                    ui: 'status',
+                    default_value: 2,
+                    hidden_input: true,
+                    sort: 2,
+                    comment: ""
+                }
+                createColumn(tableName, API_TOKEN, sortOpts, function () {
+                    createColumn(tableName, API_TOKEN, statusOpts, null);
+                    var i = 3;
+                    for (const columnName in table) {
+
+                        if (table.hasOwnProperty(columnName)) {
+                            const column = table[columnName];
+                            createColumn(tableName, API_TOKEN, 
+                                {
+                                    column_name: columnName,
+                                    ...column,
+                                    sort: i++
+                                },
+                                function () {
+
+                                });
+                        }
+                    }
+                });
                 // }, 11);
             });
         }
     }
 }
 
-function createColumn(tableName, columnName, type, ui, API_TOKEN, callback, length, comment) {
+function createColumn(tableName, API_TOKEN, columnOptions, callback) { // columnName, type, ui, callback, length, comment, sort
     let axios_config = {
         headers: { 'Authorization': "Bearer " + API_TOKEN }
     };
-    let data = {
-        column_name: columnName,
-        data_type: type,
-        ui: ui,
-        default: ""
-    }
-    if (length) data["char_length"] = length;
-    if (comment) data["comment"] = comment;
+
     axios.post('http://' + API_HOSTNAME + ':8080/api/1.1/tables/' + tableName + '/columns',
-        data, axios_config)
+        columnOptions, axios_config)
         .then(response => {
             if (response.data.success === false) {
                 console.error(chalk.red("Could not create column " +
-                    columnName + ' on table ' + tableName + ': ') +
+                    columnOptions.column_name + ' on table ' + tableName + ': ') +
                     response.data.error);
                 // verbose(console.log(response.data));
                 if (callback) callback(false, response, response.data.error);
             } else {
-                console.log(chalk.green("Created column " + columnName + " on table " + tableName));
+                console.log(chalk.green("Created column " + columnOptions.column_name +
+                    " on table " + tableName));
                 if (callback) callback(true, response, null);
             }
         })
         .catch(error => {
             console.error(chalk.red("Could not create column " +
-                columnName + ' on table ' + tableName + ": ") + error.response.data.error.message);
+                columnOptions.column_name + ' on table ' + tableName + ": ") +
+                error.response.data.error.message);
+            // console.log(error);
             // verbose(console.log(error));
             if (callback) callback(false, null, error);
         });
