@@ -1,34 +1,51 @@
 {
-    "table1": {
-        "title": {
-            "data_type": "text",
-            "char_length": 100,
-            "ui": "text_input",
-            "comment": ""            
+    "tables": {
+        "table1": {
+            "title": {
+                "data_type": "text",
+                "char_length": 100,
+                "ui": "text_input",
+                "comment": ""
+            },
+            "content": {
+                "data_type": "text",
+                "ui": "wysiwyg_full",
+                "comment": ""
+            },
+            "url": {
+                "data_type": "text",
+                "char_length": 100,
+                "ui": "text_input",
+                "comment": ""
+            }
         },
-        "content": {
-            "data_type": "text",
-            "ui": "wysiwyg_full",
-            "comment": ""
-        },
-        "url": {
-            "data_type": "text",
-            "char_length": 100,
-            "ui": "text_input",
-            "comment": ""           
+        "table2": {
+            "content": {
+                "data_type": "text",
+                "ui": "wysiwyg_full",
+                "comment": ""
+            },
+            "url": {
+                "data_type": "text",
+                "char_length": 100,
+                "ui": "text_input",
+                "comment": ""
+            }
         }
     },
-    "table2": {
-        "content": {
-            "data_type": "text",
-            "ui": "wysiwyg_full",
-            "comment": ""
+    "template": "",
+    "routeRecords": {
+        "table1Route": {
+            "originTable": "table1",
+            "routeURL": "url",
+            "routeView": "table1",
+            "controller": "table1"
         },
-        "url": {
-            "data_type": "text",
-            "char_length": 100,
-            "ui": "text_input",
-            "comment": ""     
+        "table2Route": {
+            "originTable": "table2",
+            "routeURL": "url",
+            "routeView": "table2",
+            "controller": "table2"
         }
     }
 }

@@ -159,7 +159,7 @@ function getToken(email, password, callback) {
 
 function configDirectus(API_TOKEN) {
     console.log("Creating tables...");
-    createTables(dConfig, API_TOKEN);
+    createTables(dConfig["tables"], API_TOKEN);
 }
 
 // - Methods //
